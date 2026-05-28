@@ -1,0 +1,523 @@
+/* ============================================================
+   LAYOUT — Bottom nav, no sidebar, full-screen now playing
+   ============================================================ */
+
+/* CSS variables adicionales para el nuevo layout */
+:root {
+  --nav-h: 68px;       /* altura barra nav inferior */
+  --player-h: 72px;    /* altura mini player */
+  --topbar-h: 56px;
+}
+
+/* APP ROOT — columna única, sin sidebar */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;       /* dynamic viewport height (mejor en móvil) */
+  overflow: hidden;
+  background: var(--bg-base);
+}
+
+/* MAIN CONTENT ocupa todo el espacio entre topbar y player+nav */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  background: linear-gradient(180deg, #1a1a2e 0%, var(--bg-base) 35%);
+  transition: background var(--transition-slow);
+}
+
+/* Scroll container de vistas */
+.views-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px 16px;
+  scroll-behavior: smooth;
+  /* padding extra para que el contenido no quede bajo el player/nav */
+  padding-bottom: calc(var(--player-h) + var(--nav-h) + 16px);
+}
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: transparent;
+  transition: background var(--transition);
+  min-height: var(--topbar-h);
+}
+
+.topbar.scrolled {
+  background: rgba(18,18,18,.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Logo en topbar (sustituye al sidebar logo) */
+.topbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.topbar-logo .logo-text {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--green), var(--green-hover));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.topbar-logo .logo-img-small {
+  width: 28px; height: 28px;
+  object-fit: contain;
+}
+
+.topbar-nav {
+  display: flex;
+  gap: 6px;
+}
+.nav-arrow {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.6);
+  color: var(--text-base);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), transform var(--transition);
+}
+.nav-arrow:hover { background: rgba(255,255,255,.1); transform: scale(1.05); }
+
+.search-bar {
+  flex: 1;
+  max-width: 360px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--text-base);
+  border-radius: var(--radius-full);
+  padding: 8px 16px;
+  margin: 0 16px;
+}
+.search-bar svg {
+  width: 18px; height: 18px;
+  flex-shrink: 0;
+  fill: var(--bg-base);
+}
+.search-bar input {
+  border: none; outline: none;
+  background: transparent;
+  color: var(--bg-base);
+  font-size: 14px; font-weight: 500;
+  width: 100%;
+}
+.search-bar input::placeholder { color: rgba(0,0,0,.5); }
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,0,0,.6);
+  border-radius: var(--radius-full);
+  padding: 3px 10px 3px 3px;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.topbar-user:hover { background: rgba(255,255,255,.1); }
+.user-avatar {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px; font-weight: 700;
+}
+.user-name { font-size: 13px; font-weight: 600; }
+
+/* ============================================================
+   VIEWS
+   ============================================================ */
+.view { display: none; }
+.view.active { display: block; animation: fadeIn .3s ease; }
+
+/* ============================================================
+   SIDEBAR — oculta (ya no se usa)
+   ============================================================ */
+.sidebar { display: none !important; }
+
+/* NOW PLAYING sidebar lateral — también oculta */
+.now-playing-bar { display: none !important; }
+#btnNowPlaying { display: none !important; }
+
+/* ============================================================
+   BOTTOM NAV BAR
+   ============================================================ */
+.bottom-nav {
+  position: fixed;
+  bottom: calc(var(--player-h));  /* justo encima del mini player */
+  left: 0; right: 0;
+  height: var(--nav-h);
+  background: rgba(18,18,18,.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 300;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 20px;
+  color: var(--text-subdued);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--transition);
+  border: none; background: none;
+  font-family: var(--font-main);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.bottom-nav-item svg {
+  width: 22px; height: 22px;
+  fill: currentColor;
+  transition: transform var(--transition);
+}
+.bottom-nav-item:hover,
+.bottom-nav-item.active {
+  color: var(--text-base);
+}
+.bottom-nav-item.active svg {
+  transform: scale(1.12);
+}
+.bottom-nav-item .nav-dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--green);
+  opacity: 0;
+  transition: opacity var(--transition);
+  margin-top: 1px;
+}
+.bottom-nav-item.active .nav-dot { opacity: 1; }
+
+/* ============================================================
+   NOW PLAYING — PANTALLA COMPLETA
+   ============================================================ */
+.now-playing-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  background: var(--bg-base);
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform .4s cubic-bezier(.32,.72,0,1);
+  will-change: transform;
+  overflow: hidden;
+}
+.now-playing-fullscreen.open {
+  transform: translateY(0);
+}
+
+/* Fondo dinámico con cover blureado */
+.np-fs-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(80px) saturate(1.4);
+  transform: scale(1.3);
+  opacity: .35;
+  transition: background-image .6s ease;
+  z-index: 0;
+}
+.np-fs-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(18,18,18,.3) 0%,
+    rgba(18,18,18,.7) 50%,
+    rgba(18,18,18,.95) 100%
+  );
+}
+
+/* Contenido sobre el fondo */
+.np-fs-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0 28px;
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+/* Handle / drag indicator */
+.np-fs-handle {
+  display: flex;
+  justify-content: center;
+  padding: 14px 0 8px;
+}
+.np-fs-handle span {
+  width: 36px; height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,.25);
+}
+
+/* Top bar: flecha abajo + opciones */
+.np-fs-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0 20px;
+}
+.np-fs-close {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: rgba(255,255,255,.08);
+  color: var(--text-base);
+  font-size: 18px;
+  transition: background var(--transition), transform var(--transition);
+  border: none; cursor: pointer;
+}
+.np-fs-close:hover { background: rgba(255,255,255,.15); transform: translateY(2px); }
+.np-fs-title-mini {
+  text-align: center;
+}
+.np-fs-title-mini p {
+  font-size: 11px;
+  color: var(--text-subdued);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+}
+.np-fs-options {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-subdued);
+  font-size: 22px;
+  cursor: pointer;
+  transition: color var(--transition);
+}
+.np-fs-options:hover { color: var(--text-base); }
+
+/* Cover grande */
+.np-fs-cover-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0 24px;
+  max-height: 42vh;
+}
+.np-fs-cover {
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1;
+  border-radius: var(--radius-lg);
+  object-fit: cover;
+  box-shadow: 0 24px 64px rgba(0,0,0,.7);
+  transition: transform .4s cubic-bezier(.32,.72,0,1), box-shadow .4s ease;
+}
+.np-fs-cover.playing {
+  transform: scale(1.06);
+  box-shadow: 0 32px 80px rgba(0,0,0,.8);
+}
+
+/* Info canción */
+.np-fs-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 12px;
+}
+.np-fs-info-text { min-width: 0; }
+.np-fs-song-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -.4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.np-fs-song-artist {
+  font-size: 15px;
+  color: var(--text-subdued);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.np-fs-heart {
+  font-size: 24px;
+  color: var(--text-subdued);
+  flex-shrink: 0;
+  transition: color var(--transition), transform var(--transition);
+  cursor: pointer;
+  border: none; background: none;
+}
+.np-fs-heart:hover { transform: scale(1.2); }
+.np-fs-heart.liked { color: var(--green); }
+
+/* Barra de progreso */
+.np-fs-progress-wrap {
+  margin-bottom: 8px;
+}
+.np-fs-progress-bar {
+  height: 4px;
+  background: rgba(255,255,255,.2);
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+  margin-bottom: 8px;
+  transition: height var(--transition);
+}
+.np-fs-progress-bar:hover { height: 6px; }
+.np-fs-progress-fill {
+  height: 100%;
+  background: var(--text-base);
+  border-radius: 2px;
+  width: 0%;
+  transition: width .1s linear;
+  pointer-events: none;
+}
+.np-fs-progress-bar:hover .np-fs-progress-fill { background: var(--green); }
+.np-fs-progress-thumb {
+  position: absolute;
+  top: 50%; left: 0%;
+  width: 14px; height: 14px;
+  background: var(--text-base);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity var(--transition);
+  pointer-events: none;
+}
+.np-fs-progress-bar:hover .np-fs-progress-thumb { opacity: 1; }
+.np-fs-times {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-subdued);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Controles */
+.np-fs-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+.np-fs-btn {
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-subdued);
+  border-radius: 50%;
+  transition: color var(--transition), transform var(--transition), background var(--transition);
+  cursor: pointer; border: none; background: none;
+}
+.np-fs-btn svg { width: 22px; height: 22px; fill: currentColor; }
+.np-fs-btn:hover { color: var(--text-base); background: rgba(255,255,255,.07); }
+.np-fs-btn.active { color: var(--green); }
+
+.np-fs-play-btn {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--text-base);
+  color: var(--bg-base) !important;
+  box-shadow: 0 8px 30px rgba(0,0,0,.5);
+  transition: transform var(--transition), background var(--transition);
+}
+.np-fs-play-btn svg { width: 26px; height: 26px; fill: var(--bg-base); }
+.np-fs-play-btn:hover { transform: scale(1.07); }
+
+/* Volumen */
+.np-fs-volume {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.np-fs-vol-icon {
+  color: var(--text-subdued);
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.np-fs-vol-track {
+  flex: 1;
+  height: 4px;
+  background: rgba(255,255,255,.2);
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+}
+.np-fs-vol-fill {
+  height: 100%;
+  background: rgba(255,255,255,.6);
+  border-radius: 2px;
+  pointer-events: none;
+}
+@media (max-width: 640px) {
+  .topbar {
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+  .topbar-nav {
+    order: 1;
+  }
+  .topbar-logo {
+    order: 2;
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+  .topbar-user {
+    order: 0;
+    margin-left: auto;
+    padding: 6px 10px;
+  }
+  .views-container {
+    padding: 0 12px calc(var(--player-h) + var(--nav-h) + 20px);
+  }
+  .greeting { font-size: 28px; margin-bottom: 16px; }
+  .section-title-row { margin: 24px 0 12px; }
+  .section-title-row h2,
+  .section-heading { font-size: 20px; }
+  .cards-row { gap: 10px; }
+  .picks-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+  .card { width: 100%; }
+  .track-list-header,
+  .track-item {
+    grid-template-columns: 30px minmax(0, 1fr) 48px 44px;
+  }
+  .track-item { padding: 10px 12px; }
+  .track-album { display: none; }
+  .bottom-nav { height: 64px; }
+}
