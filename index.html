@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="theme-color" content="#121212"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <title>DROPLY</title>
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/sidebar.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/player.css" />
+  <link rel="stylesheet" href="css/modal.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app">
+
+    <!-- =====================================================
+         SIDEBAR — oculta, mantenida para compatibilidad JS
+         ===================================================== -->
+    <aside class="sidebar" id="sidebar" style="display:none!important">
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-view="home"></a>
+        <a href="#" class="nav-item" data-view="search"></a>
+        <a href="#" class="nav-item" data-view="library"></a>
+      </nav>
+      <div class="sidebar-section">
+        <a href="#" class="liked-songs-btn" data-view="liked" style="display:none"></a>
+      </div>
+      <div class="playlist-list" id="playlistList"></div>
+    </aside>
+
+    <!-- =====================================================
+         CONTENIDO PRINCIPAL
+         ===================================================== -->
+    <main class="main-content" id="mainContent">
+
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar-nav">
+          <button class="nav-arrow" id="btnBack">&#8249;</button>
+          <button class="nav-arrow" id="btnForward">&#8250;</button>
+        </div>
+
+        <!-- Logo centrado (se muestra cuando no hay search) -->
+        <div class="topbar-logo" id="topbarLogo">
+          <img src="img/droply-logo.svg" alt="" class="logo-img-small"
+               onerror="this.style.display='none'"/>
+          <span class="logo-text">DROPLY</span>
+        </div>
+
+        <!-- Search bar (se muestra solo en vista búsqueda) -->
+        <div class="search-bar" id="searchBar" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M10.533 1.279c-5.18 0-9.407 4.927-9.407 11.166C1.126 18.61 5.353 23.537 10.533 23.537s9.407-4.926 9.407-11.162c0-6.24-4.226-11.096-9.407-11.096zm0 20.226c-4.273 0-7.394-4.155-7.394-9.06 0-4.906 3.121-9.133 7.394-9.133 4.274 0 7.394 4.227 7.394 9.133 0 4.905-3.12 9.06-7.394 9.06zm11.325 1.483a1.048 1.048 0 01-1.454 0l-3.658-3.657a1.029 1.029 0 010-1.455 1.03 1.03 0 011.455 0l3.657 3.657a1.03 1.03 0 010 1.455z"/>
+          </svg>
+          <input type="text" id="searchInput" placeholder="¿Qué quieres escuchar?" />
+        </div>
+
+        <div class="topbar-user">
+          <div class="user-avatar" id="userAvatar">U</div>
+          <span class="user-name" id="userName">Usuario</span>
+        </div>
+      </header>
+
+      <!-- VISTAS -->
+      <div class="views-container">
+
+        <!-- INICIO -->
+        <section class="view active" id="view-home">
+          <div class="greeting" id="greeting">Buenas tardes</div>
+          <div class="top-picks">
+            <div class="picks-grid" id="picksGrid"></div>
+          </div>
+          <div class="section-title-row">
+            <h2>Tu mezcla del día</h2>
+          </div>
+          <div class="cards-row" id="mixCards"></div>
+          <div class="section-title-row">
+            <h2>Escuchado recientemente</h2>
+          </div>
+          <div class="cards-row" id="recentCards"></div>
+          <div class="section-title-row">
+            <h2>Canciones populares</h2>
+          </div>
+          <div class="track-list" id="popularTracks"></div>
+        </section>
+
+        <!-- BÚSQUEDA -->
+        <section class="view" id="view-search">
+          <h2 class="section-heading">Explorar categorías</h2>
+          <div class="categories-grid" id="categoriesGrid"></div>
+          <div id="searchResults" style="display:none;">
+            <h2 class="section-heading">Resultados</h2>
+            <div class="track-list" id="searchTrackList"></div>
+          </div>
+        </section>
+
+        <!-- BIBLIOTECA -->
+        <section class="view" id="view-library">
+          <div class="library-header">
+          <div>
+            <h2>Tu biblioteca</h2>
+            <div class="library-filters">
+              <button class="filter-btn active" id="libFilterPlaylists">Playlists</button>
+              <button class="filter-btn" id="libFilterLiked">Canciones</button>
+            </div>
+          </div>
+          <button class="create-playlist-btn library-create" id="createPlaylistBtn">+ Nueva playlist</button>
+        </div>
+          <div class="library-list" id="libraryList"></div>
+        </section>
+
+        <!-- CANCIONES QUE TE GUSTAN -->
+        <section class="view" id="view-liked">
+          <div class="liked-header">
+            <div class="liked-cover"><span>♥</span></div>
+            <div class="liked-info">
+              <p class="liked-tag">Lista</p>
+              <h1>Canciones que te gustan</h1>
+              <p class="liked-count" id="likedCount">0 canciones</p>
+            </div>
+          </div>
+          <div class="liked-actions">
+            <button class="play-big-btn" id="playLikedBtn">▶</button>
+          </div>
+          <div class="track-list" id="likedTrackList"></div>
+        </section>
+
+        <!-- PLAYLIST DETAIL -->
+        <section class="view" id="view-playlist">
+          <div class="playlist-header">
+            <img class="playlist-cover-img" id="playlistCoverImg" src="" alt=""/>
+            <div class="playlist-header-info">
+              <p class="playlist-tag">Lista</p>
+              <h1 id="playlistTitle">Playlist</h1>
+              <p class="playlist-desc" id="playlistDesc"></p>
+              <p class="playlist-meta" id="playlistMeta"></p>
+            </div>
+          </div>
+          <div class="playlist-actions">
+            <button class="play-big-btn" id="playPlaylistBtn">▶</button>
+            <button class="icon-btn shuffle-btn" id="shufflePlaylistBtn" title="Aleatorio">⇄</button>
+          </div>
+          <div class="track-list" id="playlistTrackList"></div>
+        </section>
+
+        <!-- ARTIST -->
+        <section class="view" id="view-artist">
+          <div class="artist-header" id="artistHeader">
+            <div class="artist-gradient-overlay"></div>
+            <div class="artist-header-info">
+              <h1 id="artistName">Artista</h1>
+              <p id="artistFollowers"></p>
+            </div>
+          </div>
+          <div class="artist-actions">
+            <button class="play-big-btn" id="playArtistBtn">▶</button>
+            <button class="follow-btn" id="followArtistBtn">Seguir</button>
+          </div>
+          <h2 class="section-heading">Popular</h2>
+          <div class="track-list" id="artistTrackList"></div>
+          <h2 class="section-heading">Más de este artista</h2>
+          <div class="cards-row" id="artistMoreCards"></div>
+        </section>
+
+      </div><!-- /views-container -->
+    </main>
+
+    <!-- =====================================================
+         NOW PLAYING SIDEBAR — oculto (compatibilidad JS)
+         ===================================================== -->
+    <aside class="now-playing-bar" id="nowPlayingBar" style="display:none!important">
+      <div class="np-cover-wrapper">
+        <img id="npCoverImg" src="" alt=""/>
+      </div>
+      <div class="np-info">
+        <div class="np-title" id="npTitle">—</div>
+        <div class="np-artist" id="npArtist">—</div>
+      </div>
+      <button class="np-heart" id="npHeart" title="Me gusta">♡</button>
+    </aside>
+
+  </div><!-- /#app -->
+
+  <!-- =====================================================
+       BOTTOM NAV BAR
+       ===================================================== -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="bottom-nav-item active" data-view="home">
+      <svg viewBox="0 0 24 24"><path d="M12.97 2.59a1.5 1.5 0 00-1.94 0l-7.5 6.363A1.5 1.5 0 003 10.097V19.5A1.5 1.5 0 004.5 21h4.75a.75.75 0 00.75-.75V14h4v6.25c0 .414.336.75.75.75h4.75a1.5 1.5 0 001.5-1.5v-9.403a1.5 1.5 0 00-.53-1.144l-7.5-6.363z"/></svg>
+      <span>Inicio</span>
+      <span class="nav-dot"></span>
+    </button>
+    <button class="bottom-nav-item" data-view="search">
+      <svg viewBox="0 0 24 24"><path d="M10.533 1.279c-5.18 0-9.407 4.927-9.407 11.166C1.126 18.61 5.353 23.537 10.533 23.537s9.407-4.926 9.407-11.162c0-6.24-4.226-11.096-9.407-11.096zm0 20.226c-4.273 0-7.394-4.155-7.394-9.06 0-4.906 3.121-9.133 7.394-9.133 4.274 0 7.394 4.227 7.394 9.133 0 4.905-3.12 9.06-7.394 9.06zm11.325 1.483a1.048 1.048 0 01-1.454 0l-3.658-3.657a1.029 1.029 0 010-1.455 1.03 1.03 0 011.455 0l3.657 3.657a1.03 1.03 0 010 1.455z"/></svg>
+      <span>Buscar</span>
+      <span class="nav-dot"></span>
+    </button>
+    <button class="bottom-nav-item" data-view="library">
+      <svg viewBox="0 0 24 24"><path d="M3 22a1 1 0 01-1-1V3a1 1 0 012 0v18a1 1 0 01-1 1zM15.5 2.134A1 1 0 0014 3v18a1 1 0 001.5.866l7-4a1 1 0 000-1.732l-7-4zM8 20a1 1 0 002 0V4a1 1 0 10-2 0v16z"/></svg>
+      <span>Biblioteca</span>
+      <span class="nav-dot"></span>
+    </button>
+  </nav>
+
+  <!-- =====================================================
+       MINI PLAYER BAR (encima de la bottom nav)
+       ===================================================== -->
+  <footer class="player-bar" id="playerBar">
+    <div class="player-left" id="playerLeftTap">
+      <img class="player-cover" id="playerCover" src="" alt="" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 80 80%22%3E%3Crect width=%2280%22 height=%2280%22 rx=%2212%22 fill=%22%23292a2d%22/%3E%3Cpath d=%22M24 32h32v16H24z%22 fill=%22%236a6d73%22/%3E%3Cpath d=%22M24 28l12 10 8-12 12 16H24z%22 fill=%22%238b8f95%22/%3E%3C/svg%3E'; this.onerror=null;"/>
+      <div class="player-track-info">
+        <div class="player-title" id="playerTitle">Selecciona una canción</div>
+        <div class="player-artist" id="playerArtist">—</div>
+      </div>
+    </div>
+
+    <div class="player-center">
+      <div class="player-controls">
+        <button class="ctrl-btn" id="btnPrev" title="Anterior">
+          <svg viewBox="0 0 24 24"><path d="M3.3 1a.7.7 0 01.7.7v8.15L21.95 1.243a.75.75 0 011.05.69v20.234a.75.75 0 01-1.05.69L4 13.15V21.3a.7.7 0 01-1.4 0V1.7a.7.7 0 01.7-.7z"/></svg>
+        </button>
+        <button class="ctrl-btn play-pause-btn" id="btnPlayPause">
+          <svg id="iconPlay" viewBox="0 0 24 24"><path d="M7.05 3.606l13.49 7.788a.7.7 0 010 1.212L7.05 20.394A.7.7 0 016 19.788V4.212a.7.7 0 011.05-.606z"/></svg>
+          <svg id="iconPause" viewBox="0 0 24 24" style="display:none;"><path d="M5.7 3a.7.7 0 00-.7.7v16.6a.7.7 0 001.4 0V3.7a.7.7 0 00-.7-.7zm12.6 0a.7.7 0 00-.7.7v16.6a.7.7 0 001.4 0V3.7a.7.7 0 00-.7-.7z"/></svg>
+        </button>
+        <button class="ctrl-btn" id="btnNext" title="Siguiente">
+          <svg viewBox="0 0 24 24"><path d="M20.7 1a.7.7 0 01.7.7V22.3a.7.7 0 01-1.4 0V13.15L2.05 21.957A.75.75 0 011 21.267V2.733a.75.75 0 011.05-.69L20 10.85V1.7a.7.7 0 01.7-.7z"/></svg>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =====================================================
+       NOW PLAYING — PANTALLA COMPLETA
+       ===================================================== -->
+  <div class="now-playing-fullscreen" id="nowPlayingFullscreen">
+
+    <!-- Fondo dinámico blureado -->
+    <div class="np-fs-bg" id="npFsBg"></div>
+
+    <div class="np-fs-content">
+
+      <!-- Handle drag -->
+      <div class="np-fs-handle"><span></span></div>
+
+      <!-- Topbar -->
+      <div class="np-fs-topbar">
+        <button class="np-fs-close" id="npFsClose">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+            <path d="M12 13.414l-5.293 5.293-1.414-1.414L10.586 12 5.293 6.707l1.414-1.414L12 10.586l5.293-5.293 1.414 1.414L13.414 12l5.293 5.293-1.414 1.414z"/>
+          </svg>
+        </button>
+        <div class="np-fs-title-mini">
+          <p>Reproduciendo ahora</p>
+        </div>
+        <button class="np-fs-options" id="npFsOptions">···</button>
+      </div>
+
+      <!-- Cover -->
+      <div class="np-fs-cover-wrap">
+        <img class="np-fs-cover" id="npFsCover" src="" alt=""/>
+      </div>
+
+      <!-- Info + like -->
+      <div class="np-fs-info">
+        <div class="np-fs-info-text">
+          <div class="np-fs-song-title" id="npFsTitle">—</div>
+          <div class="np-fs-song-artist" id="npFsArtist">—</div>
+        </div>
+        <button class="np-fs-heart" id="npFsHeart">♡</button>
+      </div>
+
+      <!-- Progress -->
+      <div class="np-fs-progress-wrap">
+        <div class="np-fs-progress-bar" id="npFsProgressBar">
+          <div class="np-fs-progress-fill" id="npFsProgressFill"></div>
+          <div class="np-fs-progress-thumb" id="npFsProgressThumb"></div>
+        </div>
+        <div class="np-fs-times">
+          <span id="npFsCurrentTime">0:00</span>
+          <span id="npFsTotalTime">0:00</span>
+        </div>
+      </div>
+
+      <!-- Controles -->
+      <div class="np-fs-controls">
+        <button class="np-fs-btn" id="npFsShuffle" title="Aleatorio">
+          <svg viewBox="0 0 24 24"><path d="M17.676 3.998a.75.75 0 000 1.5h1.794l-3.018 3.018-1.444-1.444a.75.75 0 00-1.06 0L7.013 13.01a.75.75 0 001.06 1.06l6.404-6.404 1.443 1.443a.75.75 0 001.061 0l3.549-3.549v1.793a.75.75 0 001.5 0V3.998h-4.354zm0 9.427a.75.75 0 00-1.06 1.06l1.444 1.444-3.549 3.548H12.72a.75.75 0 000 1.5h2.79a.75.75 0 00.531-.22l3.988-3.988v1.793a.75.75 0 001.5 0v-4.353h-4.354a.75.75 0 000 1.5h1.794l-1.293-1.284zM3.22 4.22a.75.75 0 011.06 0l5.19 5.19-1.06 1.06L3.22 5.28a.75.75 0 010-1.06z"/></svg>
+        </button>
+        <button class="np-fs-btn" id="npFsPrev">
+          <svg viewBox="0 0 24 24"><path d="M3.3 1a.7.7 0 01.7.7v8.15L21.95 1.243a.75.75 0 011.05.69v20.234a.75.75 0 01-1.05.69L4 13.15V21.3a.7.7 0 01-1.4 0V1.7a.7.7 0 01.7-.7z"/></svg>
+        </button>
+        <button class="np-fs-btn np-fs-play-btn" id="npFsPlayPause">
+          <svg id="npFsIconPlay" viewBox="0 0 24 24"><path d="M7.05 3.606l13.49 7.788a.7.7 0 010 1.212L7.05 20.394A.7.7 0 016 19.788V4.212a.7.7 0 011.05-.606z"/></svg>
+          <svg id="npFsIconPause" viewBox="0 0 24 24" style="display:none;"><path d="M5.7 3a.7.7 0 00-.7.7v16.6a.7.7 0 001.4 0V3.7a.7.7 0 00-.7-.7zm12.6 0a.7.7 0 00-.7.7v16.6a.7.7 0 001.4 0V3.7a.7.7 0 00-.7-.7z"/></svg>
+        </button>
+        <button class="np-fs-btn" id="npFsNext">
+          <svg viewBox="0 0 24 24"><path d="M20.7 1a.7.7 0 01.7.7V22.3a.7.7 0 01-1.4 0V13.15L2.05 21.957A.75.75 0 011 21.267V2.733a.75.75 0 011.05-.69L20 10.85V1.7a.7.7 0 01.7-.7z"/></svg>
+        </button>
+        <button class="np-fs-btn" id="npFsRepeat">
+          <svg viewBox="0 0 24 24"><path d="M0 4.75A3.75 3.75 0 013.75 1h14.5A3.75 3.75 0 0122 4.75v11.5A3.75 3.75 0 0118.25 20H5.04l1.72 1.72a.75.75 0 11-1.06 1.06l-3-3a.75.75 0 010-1.06l3-3a.75.75 0 111.06 1.06L5.04 18.5h13.21A2.25 2.25 0 0020.5 16.25V4.75A2.25 2.25 0 0018.25 2.5H3.75A2.25 2.25 0 001.5 4.75v2a.75.75 0 01-1.5 0v-2z"/></svg>
+        </button>
+      </div>
+
+      <!-- Volumen -->
+      <div class="np-fs-volume">
+        <span class="np-fs-vol-icon">🔉</span>
+        <div class="np-fs-vol-track" id="npFsVolTrack">
+          <div class="np-fs-vol-fill" id="npFsVolFill" style="width:80%"></div>
+        </div>
+        <span class="np-fs-vol-icon">🔊</span>
+      </div>
+
+    </div><!-- /np-fs-content -->
+  </div><!-- /now-playing-fullscreen -->
+
+  <!-- =====================================================
+       MODAL CREAR PLAYLIST
+       ===================================================== -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="createPlaylistModal">
+      <button class="modal-close" id="modalClose">✕</button>
+      <h2>Crear playlist</h2>
+      <div class="modal-cover-upload" id="modalCoverUpload">
+        <span>+</span>
+        <p>Añadir foto</p>
+        <img id="modalCoverPreview" style="display:none;"/>
+      </div>
+      <input type="text" id="playlistNameInput" placeholder="Nombre de la playlist" class="modal-input"/>
+      <textarea id="playlistDescInput" placeholder="Añade una descripción opcional" class="modal-input modal-textarea"></textarea>
+      <button class="modal-save-btn" id="savePlaylistBtn">Guardar</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- AUDIO -->
+  <audio id="audioPlayer"></audio>
+
+  <!-- SCRIPTS -->
+  <script src="js/data.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/views.js"></script>
+  <script src="js/search.js"></script>
+  <script src="js/playlists.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
